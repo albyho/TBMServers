@@ -1,0 +1,16 @@
+{
+  "name": "ms",
+  "version": "1.0.0",
+  "description": "Media Server",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "author": "Alby",
+  "license": "ISC",
+  "dependencies": {
+    "head_body_buffers": "^2.0.0",
+    "structify.js": "^0.0.6"
+  }
+}
