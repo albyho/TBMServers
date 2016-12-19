@@ -15,7 +15,7 @@ const Timeout = 20 * 1000; // 20 * 1000  2 * 60 * 1000
 const NoDelay = true;  // Default
 
 const server = net.createServer(socket => {
-    console.log('New socket connected');     
+    console.log(`New socket connected`);     
     socket.setTimeout(Timeout); 
     socket.setNoDelay(NoDelay);
     let commandHead_PacketLayout = Structs.getCommandHead_PacketLayout();
@@ -25,7 +25,7 @@ const server = net.createServer(socket => {
         if(commandHead.flag != Structs.getCommandHead_FlagValue() || 
            commandHead.length < commandHead_Length || 
            commandHead.length > Structs.getCommandHead_LengthMax()) {
-            console.error('错误: 命令标记错误或命令长度错误');
+            console.error(`错误: 命令标记错误或命令长度错误`);
             socket.end();
             return 0;
         }
@@ -63,7 +63,7 @@ const server = net.createServer(socket => {
 
     socket.on('end', () => {
         // 如果用户主动关闭， socket.remoteAddress 为 undefined
-        console.log('Socket '+ socket.remoteAddress + ' closed');
+        console.log(`Socket ` + socket.remoteAddress + ` closed`);
         let user = users.get(socket);
         if(!user) {
             return;
@@ -74,7 +74,7 @@ const server = net.createServer(socket => {
                 // TODO: 在合适的时候(I帧块发完并发完结束帧)断开连接并从中 users 中移除
                 let client = users.get(clientSocket);
                 if(!client || client.device !== user) {
-                    console.error('2');
+                    console.error(`2`);
                     return;
                 }
                 clientSocket.end();
@@ -86,7 +86,7 @@ const server = net.createServer(socket => {
         cmdBuffer.addBuffer(data);
     });
     socket.on('timeout', () => {
-        console.log('Socket '+ socket.remoteAddress + ' timeout');     
+        console.log(`Socket ` + socket.remoteAddress + ` timeout`);     
         socket.end();
     });
     socket.on('error', error => {
@@ -100,6 +100,6 @@ server.on('error',error => {
 });
 
 server.listen(9988, '0.0.0.0', () => {
-    console.log('Opened server on', server.address());
+    console.log(`Opened server on ` + server.address());
 });
 
