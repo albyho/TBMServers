@@ -5,12 +5,13 @@ const structify = require('../lib/structify.js');
 const Structs = require('./Structs.js');
 const Commands = require('./Commands.js');
 
-// TODO: 合并成一个表
 const users = new Map();
 
 /*
  * Settings
  */
+const Hostname = '0.0.0.0';
+const Port = 9988;
 const Timeout = 20 * 1000; // 20 * 1000  2 * 60 * 1000
 const NoDelay = true;  // Default
 
@@ -37,11 +38,11 @@ const server = net.createServer(socket => {
         switch(command) {
             case Commands.getCommand_DeviceLogin(): 
             let commandBody = packet.slice(Structs.getCommandHead_Length()).objectify(Structs.getCommand_PacketLayout());
-            var keyToRemove;
+            var keyToRemove; // Type: Socket
+            // ?: 如果中断 forEach
             users.forEach((key, value) => {
                 if(value.videoID === commandBody.videoID) {
                     keyToRemove = key;
-                    return;
                 }
             });
             if(keyToRemove) {
@@ -49,15 +50,18 @@ const server = net.createServer(socket => {
                 keyToRemove.end();
             }
             users.set(socket, {
-                type: 1,    // 1 设备 2 客户端
-                profile: commandBody,
-                clientSockets: new Map()
+                type: 1,                    // 1 设备 2 客户端
+                profile: commandBody,       // 保存登录信息
+                clientSockets: new Map(),   // 客户端 Socket ，可通过 users 表检索出客户端
+                cache: new Array()          // 缓存的 I 帧块数据(包含音频)。尽量保存最近 1 个 I 帧块，以供新的客户端能迅速收到(稍有延迟)的数据。
             });
             break;
             default:
             socket.end();
-            return 0;
+            return;
         }
+
+        // 剩余的数据
         console.log(data);
     });
 
@@ -83,7 +87,11 @@ const server = net.createServer(socket => {
         }
     });
     socket.on('data', data => {
-        cmdBuffer.addBuffer(data);
+        let user = users.get(socket);
+        if(user === undefined) {
+            cmdBuffer.addBuffer(data);
+            return;
+        }
     });
     socket.on('timeout', () => {
         console.log(`Socket ` + socket.remoteAddress + ` timeout`);     
@@ -99,7 +107,7 @@ server.on('error',error => {
      console.error(error); 
 });
 
-server.listen(9988, '0.0.0.0', () => {
-    console.log(`Opened server on ` + server.address());
+server.listen(Port, Hostname, () => {
+    console.log(`Opened server on ${Hostname}:${Port}`);
 });
 
